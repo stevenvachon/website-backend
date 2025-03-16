@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "name": "website-backend",
+  "version": "3.0.0-alpha",
+  "license": "UNLICENSED",
+  "author": "Steven Vachon <contact@svachon.com> (https://svachon.com)",
+  "repository": "github:stevenvachon/website-backend",
+  "workspaces": [
+    "packages/@sv-common/*",
+    "packages/@sv-test/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build:all": "concurrently 'npm run build --workspace=analytics' 'npm run build --workspace=email'",
+    "lint:all": "eslint",
+    "test:all": "concurrently 'npm run test --workspace=@sv-common/joi-safe' 'npm test --workspace=analytics' 'npm test --workspace=email'"
+  },
+  "engines": {
+    "node": ">= 22"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.24.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.24.0",
+    "eslint-plugin-security": "^3.0.1",
+    "globals": "^16.0.0"
+  }
+}

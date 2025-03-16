@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "name": "api",
+  "version": "1.0.0",
+  "main": "openapi.yaml"
+}

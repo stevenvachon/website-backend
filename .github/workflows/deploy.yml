@@ -1,0 +1,54 @@
+# More info: https://aws.amazon.com/blogs/security/use-iam-roles-to-connect-github-actions-to-actions-in-aws/
+name: Connect to an AWS role, build and deploy
+
+on:
+  push:
+    branches: [main]
+
+# Permission can be added at job level or workflow level
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
+
+jobs:
+  DeployToAWS:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::522663366794:role/GitHubAction-stevenvachon-website
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: us-east-1
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint:all
+      - name: Tests
+        run: npm run test:all
+      - name: Upload results to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: stevenvachon/website-backend
+      - name: Production builds
+        run: npm run build:all
+      - name: AWS CLI version
+        run: aws --version
+      - name: Update (analytics) Lambda file
+        run: aws lambda update-function-code --function-name stevenvachon-analytics --zip-file fileb://./packages/analytics/bundle.zip
+      - name: Update (email) Lambda file
+        run: aws lambda update-function-code --function-name stevenvachon-email --zip-file fileb://./packages/email/bundle.zip
+      - name: Import--and auto-deploy--API Gateway OpenAPI
+        # This will remove tags and CORS settings
+        run: aws apigatewayv2 reimport-api --api-id ioi9i226o3 --body file://./packages/api/openapi.yaml
+      - name: Reconfigure deployed API Gateway CORS
+        run: aws apigatewayv2 update-api --api-id ioi9i226o3 --cors-configuration AllowOrigins='https://svachon.com',AllowMethods='OPTIONS,POST',AllowHeaders='Content-Type,X-Requested-With',MaxAge=604800
+      - name: Re-tag deployed API Gateway
+        run: aws apigatewayv2 tag-resource --resource-arn arn:aws:apigateway:us-east-1::/apis/ioi9i226o3 --tags Key=stevenvachon
