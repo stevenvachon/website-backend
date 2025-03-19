@@ -1,0 +1,370 @@
+openapi: 3.0.4
+info:
+  title: stevenvachon-api
+  description: A RESTful API
+  version: 1.0.0
+
+tags:
+  - name: stevenvachon
+    description: An AWS tag for the API Gateway
+    x-amazon-apigateway-tag-value: ''
+
+x-amazon-apigateway-cors:
+  allowOrigins:
+    - 'https://svachon.com'
+  allowMethods:
+    - 'OPTIONS'
+    - 'POST'
+  allowHeaders:
+    - 'Content-Type'
+    - 'X-Requested-With'
+  maxAge: 604800 # 1 week
+
+paths:
+  /analytics:
+    options:
+      summary: CORS preflight
+      responses:
+        '204':
+          $ref: '#/components/responses/CORSPreflightResponse'
+    post:
+      summary: Send a user behavior event
+      #operationId: sendAnalyticsEvent
+      x-amazon-apigateway-integration:
+        type: AWS_PROXY
+        httpMethod: POST
+        uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:522663366794:function:stevenvachon-analytics/invocations
+        payloadFormatVersion: 2.0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  enum:
+                    - 'PageLoad'
+                    - 'PageUnload'
+                    - 'SessionStart'
+                    - 'SessionTimeout'
+                  description: The name of the event
+                session_id:
+                  type: string
+                  format: uuid
+                  description: The unique ID for the user session
+                  example: '4e6a600f-fa60-4632-97a2-493e0ca2c35a'
+                timestamp:
+                  type: number
+                  description: The time (ms since Unix epoch) of the event
+                  example: 1742517926792
+                # For 'PageLoad' only
+                referrer:
+                  type: string
+                  format: url
+                  maxLength: 100
+                  description: The URL to the page that linked to the current page
+                  example: 'https://google.com'
+                url:
+                  type: string
+                  format: url
+                  maxLength: 100
+                  description: The URL to the current page -- REQUIRED, but cannot go in YAML `required` below
+                  example: 'https://svachon.com'
+                # For 'SessionStart' only
+                browser_name:
+                  type: string
+                browser_version_major:
+                  type: string
+                browser_version:
+                  type: string
+                cpu_arch:
+                  type: string
+                device_model:
+                  type: string
+                device_type:
+                  type: string
+                device_vendor:
+                  type: string
+                os_name:
+                  type: string
+                os_version:
+                  type: string
+                screen_resolution:
+                  type: string
+              required:
+                - event
+                - session_id
+                - timestamp
+      responses:
+        '204':
+          $ref: '#/components/responses/204Response'
+        '400':
+          description: Content could not be parsed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+        '406':
+          description: Unsupported Accept type(s)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+        '415':
+          description: Unsupported Content-Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+        '422':
+          description: Content invalidation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+        '500':
+          description: Unexpected/Unknown error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+
+  /email:
+    options:
+      summary: CORS preflight
+      responses:
+        '204':
+          $ref: '#/components/responses/CORSPreflightResponse'
+    post:
+      summary: Send a message to myself
+      #operationId: sendEmail
+      x-amazon-apigateway-integration:
+        type: AWS_PROXY
+        httpMethod: POST
+        uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:522663366794:function:stevenvachon-email/invocations
+        payloadFormatVersion: 2.0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailMessage'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EmailMessage'
+      responses:
+        '204':
+          $ref: '#/components/responses/204Response'
+        '302':
+          description: Email sent successfully -- optional
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+            Location:
+              description: Redirect URL
+              schema:
+                type: string
+                format: url
+        '400':
+          description: Missing Content-Type header OR content could not be parsed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+            application/x-www-form-urlencoded:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/TextError'
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+        '406':
+          description: Unsupported Accept type(s)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/TextError'
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+        '415':
+          description: Unsupported Content-Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+            application/x-www-form-urlencoded:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/TextError'
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+        '422':
+          description: Content invalidation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+            application/x-www-form-urlencoded:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+        '500':
+          description: Unexpected/Unknown error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+            application/x-www-form-urlencoded:
+              schema:
+                $ref: '#/components/schemas/StructuredError'
+          headers:
+            Access-Control-Allow-Headers:
+              $ref: '#/components/headers/AccessControlAllowHeaders'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Access-Control-Allow-Methods:
+              $ref: '#/components/headers/AccessControlAllowMethods'
+
+components:
+  headers:
+    AccessControlAllowHeaders:
+      description: Allowed HTTP headers for CORS
+      schema:
+        type: string
+        example: 'Content-Type, X-Requested-With'
+    AccessControlAllowOrigin:
+      description: Allowed origin for CORS
+      schema:
+        type: string
+        format: url
+        example: 'https://yourwebsite.com'
+    AccessControlAllowMethods:
+      description: Allowed HTTP methods for CORS
+      schema:
+        type: string
+        example: 'POST, OPTIONS'
+
+  responses:
+    204Response:
+      description: Success
+      headers:
+        Access-Control-Allow-Headers:
+          $ref: '#/components/headers/AccessControlAllowHeaders'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/AccessControlAllowOrigin'
+        Access-Control-Allow-Methods:
+          $ref: '#/components/headers/AccessControlAllowMethods'
+    CORSPreflightResponse:
+      description: CORS preflight response -- not handled by Lambda, but by API Gateway
+      headers:
+        Access-Control-Allow-Headers:
+          $ref: '#/components/headers/AccessControlAllowHeaders'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/AccessControlAllowOrigin'
+        Access-Control-Allow-Methods:
+          $ref: '#/components/headers/AccessControlAllowMethods'
+        Access-Control-Max-Age:
+          description: Time in seconds to cache CORS
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 86400
+
+  schemas:
+    EmailMessage:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Sender's email address
+        message:
+          type: string
+          description: Message body
+        name:
+          type: string
+          description: Sender's name
+        redirect:
+          type: string
+          format: url
+          description: Optional redirect for application/x-www-form-urlencoded response
+      required:
+        - email
+        - message
+        - name
+
+    StructuredError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: '"fieldA" is required'
+
+    TextError:
+      type: string
+      example: '"fieldA" is required'
