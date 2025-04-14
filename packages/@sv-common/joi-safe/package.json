@@ -5,7 +5,7 @@
   "main": "index.mjs",
   "scripts": {
     "test": "npm run test:watch -- --run",
-    "test:watch": "vitest dev --coverage --coverage.include=**/*.mjs --coverage.reporter=text"
+    "test:watch": "vitest dev --coverage --coverage.include=**/*.mjs --coverage.reporter=html --coverage.reporter=lcov --coverage.reporter=text"
   },
   "dependencies": {
     "sanitize-html": "^2.15.0",

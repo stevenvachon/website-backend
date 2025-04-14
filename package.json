@@ -13,7 +13,8 @@
   "scripts": {
     "build:all": "concurrently 'npm run build --workspace=analytics' 'npm run build --workspace=email'",
     "lint:all": "eslint",
-    "test:all": "concurrently 'npm run test --workspace=@sv-common/joi-safe' 'npm test --workspace=analytics' 'npm test --workspace=email'"
+    "test:all": "concurrently 'npm run test --workspace=@sv-common/joi-safe' 'npm test --workspace=analytics' 'npm test --workspace=email' && npm run test:coverage",
+    "test:coverage": "lcov-result-merger './packages/**/coverage/lcov.info' 'lcov.info' --prepend-source-files"
   },
   "engines": {
     "node": ">= 22"
@@ -23,6 +24,7 @@
     "concurrently": "^9.1.2",
     "eslint": "^9.24.0",
     "eslint-plugin-security": "^3.0.1",
-    "globals": "^16.0.0"
+    "globals": "^16.0.0",
+    "lcov-result-merger": "^5.0.1"
   }
 }
