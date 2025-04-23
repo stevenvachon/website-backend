@@ -3,6 +3,9 @@
   "name": "@sv-test/helpers",
   "version": "1.0.0",
   "main": "src/index.mjs",
+  "dependencies": {
+    "@sv-common/constants": "^1.0.0"
+  },
   "peerDependencies": {
     "vitest": "^3.1.1"
   }
