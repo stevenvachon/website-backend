@@ -2,6 +2,8 @@
 
 > My website's backend.
 
+**Note**: this repository/project is _UNLICENSED_. If you don't know what that means, Google it.
+
 ## Installation
 
 Be sure that [Git](https://git-scm.com) `>= 2` is installed.
