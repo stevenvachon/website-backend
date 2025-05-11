@@ -615,14 +615,14 @@ describe('Success response', () => {
     await expect(
       callHandler({ contentType: JSON_CONTENT_TYPE })
     ).resolves.toMatchObject(createResponse({ statusCode: 204 }));
-    expect(console.log).toHaveBeenCalledTimes(4);
+    expect(console.log).toHaveBeenCalledTimes(5);
   });
 
   it(`is HTTP 204 when there's no "redirect" field for ${FORM_CONTENT_TYPE}`, async () => {
     await expect(
       callHandler({ contentType: FORM_CONTENT_TYPE })
     ).resolves.toMatchObject(createResponse({ statusCode: 204 }));
-    expect(console.log).toHaveBeenCalledTimes(4);
+    expect(console.log).toHaveBeenCalledTimes(5);
   });
 
   it(`redirects (HTTP 302) when there's a "redirect" field for ${FORM_CONTENT_TYPE}`, async () => {
@@ -634,6 +634,6 @@ describe('Success response', () => {
         statusCode: 302,
       })
     );
-    expect(console.log).toHaveBeenCalledTimes(4);
+    expect(console.log).toHaveBeenCalledTimes(5);
   });
 });

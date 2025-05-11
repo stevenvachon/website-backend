@@ -120,7 +120,7 @@ export const handler = async (
   }
 
   console.log(
-    'Email sent:',
+    'Result from SES:',
     await send(WEBSITE_HOSTNAME, EMAIL_ADDRESS, {
       email: input.email,
       message: input.message,
@@ -138,27 +138,31 @@ export const handler = async (
   }
 };
 
-const response = ({ content, contentType, redirect, statusCode }) => ({
-  ...(content
-    ? {
-        body:
-          contentType === FORM_CONTENT_TYPE
-            ? new URLSearchParams(content).toString()
-            : contentType === JSON_CONTENT_TYPE
-            ? JSON.stringify(content)
-            : contentType === TEXT_CONTENT_TYPE
-            ? content
-            : /* v8 ignore next */
-              undefined, // TODO: https://github.com/tc39/proposal-throw-expressions
-      }
-    : {}),
-  headers: {
-    ...CORS_HEADERS,
-    ...(contentType ? { [CONTENT_TYPE]: contentType } : {}),
-    ...(redirect ? { Location: new URL(redirect, WEBSITE_URL).href } : {}),
-  },
-  statusCode,
-});
+const response = ({ content, contentType, redirect, statusCode }) => {
+  const result = {
+    ...(content
+      ? {
+          body:
+            contentType === FORM_CONTENT_TYPE
+              ? new URLSearchParams(content).toString()
+              : contentType === JSON_CONTENT_TYPE
+              ? JSON.stringify(content)
+              : contentType === TEXT_CONTENT_TYPE
+              ? content
+              : /* v8 ignore next */
+                undefined, // TODO: https://github.com/tc39/proposal-throw-expressions
+        }
+      : {}),
+    headers: {
+      ...CORS_HEADERS,
+      ...(contentType ? { [CONTENT_TYPE]: contentType } : {}),
+      ...(redirect ? { Location: new URL(redirect, WEBSITE_URL).href } : {}),
+    },
+    statusCode,
+  };
+  console.log('Response:', result);
+  return result;
+};
 
 const formResponse = (config) =>
   response({ contentType: FORM_CONTENT_TYPE, ...config });
@@ -196,7 +200,7 @@ const send = (websiteName, targetEmail, { email, message, name }) => {
     },
   };
   console.log(
-    'SendEmailCommand',
+    'Sending to SES:',
     inspect(config, { depth: null, colors: false })
   );
   return new SESClient({ region: 'us-east-1' }).send(

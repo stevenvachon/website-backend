@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "email",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "bundle.js",
   "scripts": {
     "build": "rm -f bundle.zip && esbuild index.mjs --bundle --minify --platform=node --outfile=bundle/bundle.js --sourcemap && cp package.json bundle/ && zip -r bundle.zip bundle/ && rm -rf bundle",

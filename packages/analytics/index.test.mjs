@@ -597,6 +597,6 @@ describe('Success response', () => {
     await expect(callHandler()).resolves.toMatchObject(
       createResponse({ statusCode: 204 })
     );
-    expect(console.log).toHaveBeenCalledTimes(3);
+    expect(console.log).toHaveBeenCalledTimes(4);
   });
 });

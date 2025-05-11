@@ -62,7 +62,7 @@ export const handler = async ({ body, headers } /*, context*/) => {
     return jsonResponse({ content: { message }, statusCode: 422 });
   }
 
-  console.log('Event sent:', await send(input));
+  console.log('Result from Pinpoint:', await send(input));
 
   return response({ statusCode: 204 });
 };
@@ -70,24 +70,28 @@ export const handler = async ({ body, headers } /*, context*/) => {
 const jsonResponse = (config) =>
   response({ contentType: JSON_CONTENT_TYPE, ...config });
 
-const response = ({ content, contentType, statusCode }) => ({
-  ...(content
-    ? {
-        body:
-          contentType === JSON_CONTENT_TYPE
-            ? JSON.stringify(content)
-            : contentType === TEXT_CONTENT_TYPE
-            ? content
-            : /* v8 ignore next */
-              undefined, // TODO: https://github.com/tc39/proposal-throw-expressions
-      }
-    : {}),
-  headers: {
-    ...CORS_HEADERS,
-    ...(contentType ? { [CONTENT_TYPE]: contentType } : {}),
-  },
-  statusCode,
-});
+const response = ({ content, contentType, statusCode }) => {
+  const result = {
+    ...(content
+      ? {
+          body:
+            contentType === JSON_CONTENT_TYPE
+              ? JSON.stringify(content)
+              : contentType === TEXT_CONTENT_TYPE
+              ? content
+              : /* v8 ignore next */
+                undefined, // TODO: https://github.com/tc39/proposal-throw-expressions
+        }
+      : {}),
+    headers: {
+      ...CORS_HEADERS,
+      ...(contentType ? { [CONTENT_TYPE]: contentType } : {}),
+    },
+    statusCode,
+  };
+  console.log('Response:', result);
+  return result;
+};
 
 const send = ({ event, timestamp, ...attributes }) => {
   const config = {
@@ -108,7 +112,7 @@ const send = ({ event, timestamp, ...attributes }) => {
     },
   };
   console.log(
-    'PutEventsCommand',
+    'Sending to Pinpoint:',
     inspect(config, { depth: null, colors: false })
   );
   return new PinpointClient({ region: 'us-east-1' }).send(
